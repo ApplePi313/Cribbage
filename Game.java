@@ -127,6 +127,32 @@ public class Game {
 		swapPlayers(dealer);
 		turn = players.get(dealer);
 
+		for (int j = 0; j < crib.getSize(); j++) {
+			if (crib.getCard(j).getValue() == 10 && 
+				crib.getCard(j).getSuit() == cut.getSuit()) {
+
+				turn.addPoints(1);
+				System.out.println("You gained " + green(1) + " point for having a Jack that's the same suit as the cut.");
+				scnr.nextLine();
+			}
+		}
+
+		for (int j = 1; j < crib.getSize(); j++) {
+			if (crib.getCard(j).getSuit() != crib.getCard(0).getSuit()) {
+				break;
+			} else if (j == crib.getSize() - 1) {
+				if (crib.getCard(0).getSuit() == cut.getSuit()) {
+					turn.addPoints(5);
+					System.out.println("You gained " + green(5) + " points for having all cards of the same suit, including the cut.");
+					scnr.nextLine();
+				} else {
+					turn.addPoints(4);
+					System.out.println("You gained " + green(4) + " points for having all cards of the same suit.");
+					scnr.nextLine();
+				}
+			}
+		}
+
 		while (canShow(crib) && !endgame()) {
 			System.out.println(displayPoints());
 			System.out.println("Cut card: " + cut.displayCard());
@@ -154,11 +180,22 @@ public class Game {
 					showIndices.clear();
 					break;
 				}
+
 				for (int j = 0; j < showIndices.size(); j++) {
-					if (showIndices.get(j) >= crib.getSize()) {
+					if (showIndices.get(j) >= crib.getSize() || 
+						showIndices.get(j) < 0) {
+						
 						System.out.println("\n\n\033[1;31mInvalid Input\n\n\033[0m");
 						showIndices.clear();
 						break;
+					}
+				}
+				for (int j = 0; j < showIndices.size() - 1; j++) {
+					for (int k = j + 1; k < showIndices.size(); k++) {
+						if (showIndices.get(j) == showIndices.get(k)) {
+							System.out.println("\n\n\033[1;31mInvalid Input\n\n\033[0m");
+							showIndices.clear();
+						}
 					}
 				}
 				if (showIndices.size() == 0) break;
@@ -168,7 +205,6 @@ public class Game {
 			if (showIndices.size() == 0) continue;
 
 			showIndices.sort(Comparator.naturalOrder());
-			System.out.println(showIndices);
 			for (int j = showIndices.size() - 1; j >= 0; j--) {
 				tmpDeck.addCard(crib.removeCard(showIndices.get(j)));
 			}
@@ -197,15 +233,15 @@ public class Game {
 
 	private void showLoop() {
 		for (int i = 0; i < numPlayers; i++) {
-			swapPlayers(i);
-			turn = players.get(i);
+			swapPlayers((i + dealer + 1) % numPlayers);
+			turn = players.get((i + dealer + 1) % numPlayers);
 
 			for (int j = 0; j < turn.getHand().getSize(); j++) {
 				if (turn.getHand().getCard(j).getValue() == 10 && 
 					turn.getHand().getCard(j).getSuit() == cut.getSuit()) {
 
 					turn.addPoints(1);
-					System.out.println("You gained" + green(1) + "point for having a Jack that's the same suit as the cut.");
+					System.out.println("You gained " + green(1) + " point for having a Jack that's the same suit as the cut.");
 					scnr.nextLine();
 				}
 			}
@@ -215,12 +251,12 @@ public class Game {
 					break;
 				} else if (j == turn.getHand().getSize() - 1) {
 					if (turn.getHand().getCard(0).getSuit() == cut.getSuit()) {
-						turn.addPoints(4);
-						System.out.println("You gained" + green(4) + "points for having all cards of the same suit.");
+						turn.addPoints(5);
+						System.out.println("You gained " + green(5) + " points for having all cards of the same suit, including the cut.");
 						scnr.nextLine();
 					} else {
-						turn.addPoints(5);
-						System.out.println("You gained" + green(5) + "points for having all cards of the same suit, and the cut is the same suit.");
+						turn.addPoints(4);
+						System.out.println("You gained " + green(4) + " points for having all cards of the same suit.");
 						scnr.nextLine();
 					}
 				}
@@ -312,6 +348,8 @@ public class Game {
 		currPlayer = (dealer + 1) % numPlayers; // start after the dealer
 		lastCountReset = -1;
 		messages.clear();
+		play.clear();
+		playHistory.clear();
 		while (playersHaveCards()) {
 			messages.add("The current count is: " + count);
 			messages.add(displayPoints());
@@ -387,7 +425,7 @@ public class Game {
 					if (endgame()) return;
 				} if (count == 31 && !playersHaveCards()) {
 					turn.addPoints(2);
-					System.out.println("31 for" + green(2) + ", and end of play. Please press enter to continue.");
+					System.out.println("31 for " + green(2) + ", and end of play. Please press enter to continue.");
 					scnr.nextLine();
 					if (endgame()) return;
 
@@ -395,7 +433,7 @@ public class Game {
 					goCount = 0;
 				} if (count == 31) {
 					turn.addPoints(2);
-					System.out.println("31 for" + green(2) + ". Please press enter to continue.");
+					System.out.println("31 for " + green(2) + ". Please press enter to continue.");
 					scnr.nextLine();
 					if (endgame()) return;
 
@@ -422,7 +460,7 @@ public class Game {
 					lastCountReset = play.getSize() - 1;
 					
 					System.out.println("You are unable to play anything, and have gained a point for playing the last card. Please press enter to continue.");
-					messages.add(turn.getName() + " got" + green(1) + "point for playing the last card.");
+					messages.add(turn.getName() + " got " + green(1) + " point for playing the last card.");
 					turn.addPoints(1);
 					scnr.nextLine();
 					if (endgame()) return;
@@ -439,6 +477,7 @@ public class Game {
 
 		for (int i = 0; i < numPlayers; i++) { // return cards to the players' hands for the show loop
 			drawCards(4, players.get(i).getDiscard(), players.get(i).getHand());
+			players.get(i).getHand().sortDeck();
 		}
 	}
 
@@ -465,7 +504,7 @@ public class Game {
 		choice = choice > draw.getSize() - 1 ? draw.getSize() - 1 : choice;
 		cut = draw.getCard(choice);
 		if (cut.getValue() == 10) {
-			System.out.println("The cut was a Jack, so" + players.get(dealer).getName() + "has gained" + green(2) + "points. Press enter to continue.");
+			System.out.println("The cut was a Jack, so " + players.get(dealer).getName() + " has gained " + green(2) + " points. Press enter to continue.");
 			players.get(dealer).addPoints(2);
 			scnr.nextLine();
 		}
@@ -477,6 +516,7 @@ public class Game {
 	private void cribCreationLoop() {
 		System.out.println(players.get(dealer).getName() + " is the dealer this round. Please press enter to continue.");
 		scnr.nextLine();
+		crib.clear();
 		for (int i = 0; i < numPlayers; i++) {
 			swapPlayers(i);
 
@@ -519,9 +559,7 @@ public class Game {
 			System.out.println("\n\n");	
 		}
 
-
-		// System.out.println("The Crib: \n" + crib.displayDeck());
-	
+		crib.sortDeck();
 	}
 
 	private int checkFifteenTwos(Deck deck, int currCount) {
@@ -656,17 +694,17 @@ public class Game {
 		}
 		switch (play.getSize() - 1 - i - 1) { // extra -1 because the difference will start at 1
 			case 1:
-				System.out.println(players.get(player).getName() + " played a pair, and gained" + green(2) + "points. Please press enter to continue.");
+				System.out.println(players.get(player).getName() + " played a pair, and gained " + green(2) + " points. Please press enter to continue.");
 				players.get(player).addPoints(2);
 				scnr.nextLine();
 				break;
 			case 2:
-				System.out.println(players.get(player).getName() + " played a pair royal, and gained" + green(6) + "points. Please press enter to continue.");
+				System.out.println(players.get(player).getName() + " played a pair royal, and gained " + green(6) + " points. Please press enter to continue.");
 				players.get(player).addPoints(6);
 				scnr.nextLine();
 				break;
 			case 3:
-				System.out.println(players.get(player).getName() + " played a double pair royal, and gained" + green(12) + "points. Please press enter to continue.");
+				System.out.println(players.get(player).getName() + " played a double pair royal, and gained " + green(12) + " points. Please press enter to continue.");
 				players.get(player).addPoints(12);
 				scnr.nextLine();
 				break;
