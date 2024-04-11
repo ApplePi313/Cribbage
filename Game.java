@@ -4,7 +4,7 @@ import java.util.Random;
 import java.util.Scanner;
 
 public class Game {
-	private Deck draw; // the draw pile
+	private Deck draw;
 	private Deck play;
 	private Deck runStarts;
 	private ArrayList<Player> players;
@@ -765,14 +765,12 @@ public class Game {
 		clearScreen();
 		System.out.println(players.get(i).getName() + ", please press enter when you are ready.\n");
 		scnr.nextLine();
-		// this may or may not work on windows
 		System.out.println("\033[0;30m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\033[0m");
 	}
 	private void swapPlayers(int i, ArrayList<String> msgs) {
 		clearScreen();
 		System.out.println(players.get(i).getName() + ", please press enter when you are ready.\n");
 		scnr.nextLine();
-		// this may or may not work on windows
 		System.out.println("\033[0;30m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\033[0m");
 		for (String s : msgs) {
 			System.out.println(s);
